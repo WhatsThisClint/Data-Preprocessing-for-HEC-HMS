@@ -1,4 +1,4 @@
-# Data Preprocessing for HEC-RMS Input
+# Data Preprocessing for HEC-HMS Input
 
 This repository contains a Jupyter notebook script that automates the preprocessing of a large dataset of TIFF files for use in the HEC-RMS (Hydrologic Engineering Center's River Analysis System) software.
 
