@@ -38,3 +38,7 @@ If you have any suggestions, improvements, or bug fixes, feel free to submit a p
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
+
+## DOI
+
+https://doi.org/10.5281/zenodo.10959672
