@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hec-hms-preprocess"
+version = "0.2.0"
+description = "GDAL-backed raster preprocessing pipeline for HEC-HMS gridded inputs."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+  { name = "WhatsThisClint" }
+]
+dependencies = []
+
+[project.optional-dependencies]
+gdal = [
+  "GDAL>=3.8",
+]
+
+[project.scripts]
+hec-hms-preprocess = "hec_hms_preprocess.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
