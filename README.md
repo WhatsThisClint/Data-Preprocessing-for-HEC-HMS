@@ -1,43 +1,91 @@
-# Time-Series Data Preprocessing for HEC-HMS Input
+# Data Preprocessing for HEC-HMS
 
-This repository contains a Jupyter notebook script that automates the preprocessing of a large dataset of TIFF files for use in the HEC-RMS (Hydrologic Engineering Center's River Analysis System) software.
+This repository prepares gridded raster inputs for HEC-HMS workflows. The original notebook is preserved, and the processing logic has been moved into a reusable Python package and CLI.
 
-## Overview
+The pipeline follows the original workflow:
 
-The script performs the following tasks:
+1. Resample TIFF rasters to a target pixel size.
+2. Clip rasters to a basin/catchment shapefile.
+3. Export clipped rasters to Arc/Info ASCII Grid (`.asc`) files.
 
-1. **Resampling TIFF files**: The script iterates through all TIFF files in the `input_folder` directory and resamples them to a desired pixel size (in this case, 0.0001). The resampled TIFF files are saved in the `output_folder` directory with a "_resampled" suffix.
+## Install
 
-2. **Extracting data using a shapefile**: The script then iterates through the resampled TIFF files in the `output_folder` directory and extracts the data using a specified shapefile (`shapefile_path`). The extracted data is saved in the `extracted` folder with an "_extracted" suffix.
+The package can be installed without GDAL for planning, testing, and dry runs:
 
-3. **Converting TIFF to ASCII**: Finally, the script converts the extracted TIFF files in the `extracted` folder to the ASCII format and saves them in the `ascii` folder with a ".asc" extension.
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -e .
+```
 
-This preprocessing step is essential for preparing the data to be used as input for the HEC-RMS software, which requires the data to be in a specific format. By automating these tasks, the script helps to streamline the data preparation process and ensures that the input data is properly formatted for use in HEC-RMS.
+For real raster processing, install GDAL and its Python bindings. Depending on your system, this may be easiest through Conda/OSGeo4W, or:
+
+```powershell
+python -m pip install -e .[gdal]
+```
 
 ## Usage
 
-1. Ensure you have the following dependencies installed:
-   - Python
-   - GDAL (Geospatial Data Abstraction Library)
+Preview a processing plan without running GDAL:
 
-2. Update the following variables in the script to match your specific setup:
-   - `input_folder`: The directory containing the TIFF files to be processed.
-   - `output_folder`: The directory where the resampled TIFF files will be saved.
-   - `shapefile_path`: The file path to the shapefile used for data extraction.
+```powershell
+hec-hms-preprocess `
+  --input-dir .\rasters `
+  --shapefile .\boundary\basin.shp `
+  --work-dir .\outputs `
+  --dry-run
+```
 
-3. Run the Jupyter notebook script to execute the data preprocessing steps.
+Run the full pipeline:
 
-## Compatibility
+```powershell
+hec-hms-preprocess `
+  --input-dir .\rasters `
+  --shapefile .\boundary\basin.shp `
+  --work-dir .\outputs `
+  --pixel-size 0.0001 `
+  --destination-nodata -9999
+```
 
-This script has been tested and verified to work with HEC-RMS. While the core preprocessing logic should be transferable to HEC-RAS as well, you may need to make some adjustments to accommodate any differences in data format requirements between the two systems.
+Useful options:
 
-## Contribution
+- `--target-srs EPSG:4326`: reproject outputs while resampling.
+- `--resample-algorithm near`: use nearest-neighbor for categorical grids.
+- `--skip-resample`: clip source TIFFs directly.
+- `--skip-clip`: convert source or resampled TIFFs without a boundary mask.
+- `--skip-ascii`: stop after GeoTIFF outputs.
+- `--overwrite`: replace existing outputs.
+- `--json`: print a machine-readable operation plan.
 
-If you have any suggestions, improvements, or bug fixes, feel free to submit a pull request. I'm always happy to collaborate and enhance the functionality of this script.
+## Output Layout
 
-## License
+By default, outputs are written under `outputs/`:
 
-This project is licensed under the [MIT License](LICENSE).
+```text
+outputs/
+  resampled/
+  clipped/
+  ascii/
+```
+
+Generated outputs are ignored by Git.
+
+## Development
+
+```powershell
+$env:PYTHONPATH = "src"
+python -m unittest discover -s tests
+python -m compileall src tests
+```
+
+The tests use dry-run plans and do not require GDAL.
+
+## Notes
+
+- Confirm that raster and shapefile coordinate reference systems match, or pass `--target-srs`.
+- Use `near` resampling for land-use or class rasters; use `bilinear` or `cubic` for continuous grids such as precipitation or elevation.
+- The original notebook filename mentions `HEC-RMS`; it is retained as provenance, but the package and docs now target HEC-HMS preprocessing.
 
 ## DOI
 
